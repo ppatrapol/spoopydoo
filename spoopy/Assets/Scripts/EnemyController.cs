@@ -10,11 +10,14 @@ public class EnemyController : MonoBehaviour
     public float sightLength; 
     public float movementSpeed;
     public GameObject sight;
+  //  public GameObject vision;
     public Transform[] waypoints;
-
+    bool isReturning = false;
     int waypointIndex;
     int routeLoop = 1;
+    float chaseTimer = 2f;
 
+    public bool playerDetected { get { return isPlayerDetected; } set { isPlayerDetected = value; } }
     bool isPlayerDetected = false;
     bool isDirectionStored;
 
@@ -30,8 +33,11 @@ public class EnemyController : MonoBehaviour
   
     void Update()
     {
+        if (!GameData.isMenuOpen)
+        {
+            Movement();
+        }
 
-        Movement();
     }
 
 
@@ -42,6 +48,7 @@ public class EnemyController : MonoBehaviour
         Vector3 newPosition;
         Vector3 direction;
         Vector3 remainingDistance;
+     
         
         Ray ray = new Ray();
       
@@ -53,14 +60,27 @@ public class EnemyController : MonoBehaviour
         newPosition = position;   
 
 
-        if (isPlayerDetected == false)
+        if (isPlayerDetected == false )
         {
         
             direction = waypoints[waypointIndex].position - position;
+            if(isReturning)
+            {
+                isDirectionStored = false;
+                isReturning = false;
+            }
            
             
         }
+        /*
+        else if (isPlayerDetected == false && isReturning == false)
+        {
 
+            direction = waypoints[waypointIndex].position - position;
+     
+
+        }
+        */
         else
         {
             direction = GameData.position - position;
@@ -83,7 +103,7 @@ public class EnemyController : MonoBehaviour
            
             enemyVision = direction;
             isDirectionStored = true;
-            Debug.Log(enemyVision);
+  
         }
 
         newPosition = newPosition + direction * movementSpeed * Time.deltaTime;
@@ -94,29 +114,50 @@ public class EnemyController : MonoBehaviour
         ray.direction = enemyVision ;
        
         sight.transform.position = position + enemyVision * sightLength;
+
+
         
-
-
 
         //****************** ENEMY VISION *************************
 
-        if (Physics.Raycast(ray, out raycastHit,sightLength))
+        if (Physics.Raycast(ray, out raycastHit, sightLength))
         {
+          
 
             if (raycastHit.collider.gameObject.tag == "Player" && isPlayerDetected == false)
             {
                 Debug.Log("It works");
                 isPlayerDetected = true;
-                
+                chaseTimer = 2f;
+
+
             }
+
             
+            else if (raycastHit.collider.gameObject.tag != "Player")
+            {
+                chaseTimer -= Time.deltaTime;
+
+                if (chaseTimer <= 0 && isPlayerDetected == true)
+                {
+                     isPlayerDetected = false;
+                     isReturning = true;
+
+                }
+
+
+            }
+             
         }
-        
+
+      
+
+
         //********************************************************
-       
-        
-        
-        
+
+
+
+
         rigidbody.MovePosition(newPosition);
 
 
@@ -147,6 +188,7 @@ public class EnemyController : MonoBehaviour
             waypointIndex += routeLoop;
 
             isDirectionStored = false;
+            isReturning = false;
 
         }
 

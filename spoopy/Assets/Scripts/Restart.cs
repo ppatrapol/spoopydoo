@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class Restart : MonoBehaviour
 {
-    
+   
 
     private void OnTriggerEnter(Collider other)
     {

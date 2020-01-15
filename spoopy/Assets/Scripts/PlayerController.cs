@@ -9,30 +9,53 @@ public class PlayerController : MonoBehaviour
     public float speed = 3f;
     public float diagonal = 0.8f;
     public GameObject vision;
+    public InventoryManager inventory;
+    bool isInventoryOpen = false;
+  
     Rigidbody rigidbody;
+
+
 
 
     void Awake()
     {
-        if (!GameData.hasTransitioned)
-        GameData.position.Set(0f, 0.7f, -4.5f);
 
-       
-       
+        if (GameData.hasTransitioned)
+        {
+      //  transform.position = GameData.position;
+    
+        }
 
     }
     void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
+      
     }
 
-    // Update is called once per frame
+
     void Update()
     {
+        if (!GameData.isMenuOpen)
+        {
+            PlayerMovement();
 
-        PlayerMovement();
+        }
+       
         SpritePerspective();
 
+        if (Input.GetKeyDown(KeyCode.I) && isInventoryOpen == false)
+        {
+            inventory.DisplayInventory();
+            isInventoryOpen = true;
+            GameData.isMenuOpen = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.I) && isInventoryOpen == true)
+        {
+            inventory.CloseInventory();
+            isInventoryOpen = false;
+            GameData.isMenuOpen = false;
+        }
 
     }
 
@@ -46,9 +69,11 @@ public class PlayerController : MonoBehaviour
 
 
         rotating.x = mainCamera.transform.position.y;
-        transform.rotation = rotating;
+        vision.transform.rotation = rotating;
 
     }
+
+
 
     void PlayerMovement()
     {
@@ -56,6 +81,9 @@ public class PlayerController : MonoBehaviour
         Vector3 direction = new Vector3(0f,0f,1f);
         float vertical = Input.GetAxis("Vertical");
         float horizontal = Input.GetAxis("Horizontal");
+        Ray ray = new Ray();
+
+
 
         position = rigidbody.position;
 
@@ -64,11 +92,10 @@ public class PlayerController : MonoBehaviour
         { 
 
         direction.Set(horizontal, 0f, vertical);
-
         direction.Normalize();
            
-  
-        vision.transform.position = direction + position;
+        vision.transform.position = direction/2 + position;
+        
         }
 
 
@@ -81,6 +108,10 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        ray.origin = position;
+        ray.direction = direction;
+
+    
 
         position.z = position.z + vertical * speed * Time.deltaTime;
         position.x = position.x + horizontal * speed * Time.deltaTime;
@@ -89,5 +120,8 @@ public class PlayerController : MonoBehaviour
         rigidbody.MovePosition(position);
     }
 
-    
+
+
+
+
 }
